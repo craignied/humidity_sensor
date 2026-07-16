@@ -250,6 +250,14 @@ PH2.0 pads and confirm red = `+` matches the board's silk. DFRobot added an
 anti-reverse silkscreen, but reversed polarity kills the board — 30 s with a
 meter is cheap insurance.
 
+**Known issue — Qimoo 104050 ships with reversed polarity:** the Qimoo
+battery's stock JST-PH plug is wired black-to-`+`/red-to-`-` relative to the
+FireBeetle's socket (confirmed by metering, 2026-07-16). Do not force it in.
+Fix by de-pinning and swapping the two crimp contacts in the housing — no
+soldering required. Tutorial: [The easy way to remove/extract female inserts
+from JST connector](https://www.youtube.com/watch?v=nRVhPhfdawg). Re-meter
+after swapping before plugging into the board.
+
 ---
 
 ## Power budget & expected battery life

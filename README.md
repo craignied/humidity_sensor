@@ -60,6 +60,13 @@ wiring — same as the battery-polarity check below.
 **Before first battery plug-in:** meter the LiPo pigtail against the board's
 PH2.0 pads and confirm red = `+` matches the board's silk before plugging in.
 
+**Known issue — Qimoo 104050 ships with reversed polarity:** its stock
+JST-PH plug is black-to-`+`/red-to-`-` relative to the FireBeetle's socket.
+Don't force it in — de-pin and swap the two crimp contacts instead (no
+soldering needed). Tutorial: [The easy way to remove/extract female inserts
+from JST connector](https://www.youtube.com/watch?v=nRVhPhfdawg). Re-meter
+after swapping.
+
 ## Build, flash, verify
 
 1. Copy the firmware config template and fill in your WiFi/network values:
