@@ -10,6 +10,24 @@ Python listener on the Mac receives and logs the readings.
 This file is the source of truth for the project. Read it before proposing
 changes. The hardware is fixed and in hand — do not suggest swapping parts.
 
+## Status (2026-07-16)
+
+- **Hardware wired**: DHT22 on D2/D6/GND; Qimoo battery re-pinned (its plug
+  shipped reverse-polarity — see Wiring) and connected.
+- **Firmware implemented** (`firmware/`), builds clean. Real `config.h` is
+  filled in (WiFi creds from the locker `.env`): node static IP
+  `192.168.1.200`, pushing to `192.168.1.107:50505`. Not yet flashed.
+- **Listener implemented** (`listener/`), tested end-to-end with fake packets.
+  **Temporarily targeting the Mac Studio (192.168.1.107), not Niedermediamac**
+  — Craig's call for the testing phase. UDP 50505 is registered in
+  `locker/PORTS.md`. Move to Niedermediamac (192.168.1.126) for production:
+  it's a one-line `MAC_IP` change + reflash + run `install.sh` there.
+  (Reminder: the Mac Studio is a workstation — if it sleeps, readings drop.
+  Fine for testing, not for production.)
+- **Next**: flash over USB-C (`pio run -t upload`), watch first wake on the
+  monitor, start the listener, confirm end-to-end; add a DHCP reservation for
+  `.200` on the router.
+
 ---
 
 ## Success criteria
