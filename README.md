@@ -52,10 +52,8 @@ GND  (-)    ----------> GND
 directly so it draws zero current in deep sleep — wiring to 3V3 instead works
 electrically but defeats that gating.
 
-**Caveat:** the GPIO↔silkscreen mapping (`GPIO14`=`D6`, `GPIO25`=`D2`) comes
-from DFRobot's wiki GPIO table, not the board's physical header diagram
-(image-only). Confirm `D2`/`D6` visually against the silkscreen before
-wiring — same as the battery-polarity check below.
+The GPIO↔silkscreen mapping (`GPIO14`=`D6`, `GPIO25`=`D2`) is confirmed
+against the official DFRobot pinout PDF in [docs/](docs/).
 
 **Before first battery plug-in:** meter the LiPo pigtail against the board's
 PH2.0 pads and confirm red = `+` matches the board's silk before plugging in.

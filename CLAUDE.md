@@ -104,11 +104,10 @@ first flash. Avoid strapping pins (GPIO0, 2, 12, 15).
 | DHT22 POWER (gate) | **GPIO25** | `D2` | Drives sensor VCC so it's fully off during sleep |
 | DHT22 GND | GND | `GND` | Any GND pin, either header row |
 
-**Caveat:** the GPIO↔silkscreen mapping above (`GPIO14`=`D6`, `GPIO25`=`D2`)
-comes from DFRobot's wiki GPIO table (text), not the board's physical header
-diagram (image-only, not machine-readable). Confirm `D2`/`D6` visually against
-the silkscreen before wiring — same 30-second-insurance principle as the
-battery polarity check below.
+The GPIO↔silkscreen mapping (`GPIO14`=`D6`, `GPIO25`=`D2`) is **confirmed**
+against the official pinout diagram (Figure 2) in
+`docs/FireBeetle 2 ESP32-E … DFR0654-F … .pdf`. Both pins are on the same
+header row (D6, then D5/D3, then D2 going toward the TX/RX end).
 
 **Power-gating rationale:** driving the sensor's VCC from a GPIO means it draws
 nothing in deep sleep. On wake, set GPIO25 HIGH, wait for the DHT22 to
@@ -151,10 +150,10 @@ biggest drain per cycle. Minimize it:
   "err": null
 }
 ```
-- `vbat` optional — the FireBeetle 2 can sense battery voltage via an onboard
-  divider; confirm the ADC pin on the DFRobot wiki and use an **ADC1** pin
-  (ADC2 is unusable while WiFi is on). Read it *before* bringing WiFi up. If the
-  pin isn't confirmed, omit `vbat` for v1.0.
+- `vbat` — **confirmed**: GPIO34 (A2, ADC1_CH6) reads battery voltage through
+  the onboard 2×1 MΩ divider (÷2, ~2 µA continuous, permanently connected on
+  the DFR0654 — no solder pad needed). ADC1, so safe to read any time; firmware
+  reads it before WiFi anyway. `analogReadMilliVolts(34) * 2 / 1000.0`.
 - `boot` = a counter in `RTC_DATA_ATTR`, handy for spotting resets/missed sends.
 - `err` = short string when a read fails, else null.
 
