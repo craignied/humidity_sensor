@@ -104,6 +104,10 @@ def main() -> None:
     sock.bind((LISTEN_HOST, LISTEN_PORT))
     logging.info("Listening on %s:%d", LISTEN_HOST, LISTEN_PORT)
 
+    # The node sends each reading 3x (cold-ARP insurance); dedupe on
+    # (node, boot) so only the first copy of each wake's reading is stored.
+    last_key = None
+
     while True:
         try:
             data, addr = sock.recvfrom(2048)
@@ -115,6 +119,10 @@ def main() -> None:
         except ValueError as e:
             logging.warning("bad packet from %s: %s (raw: %r)", addr[0], e, data[:200])
             continue
+        key = (row["node"], row["boot"])
+        if row["boot"] is not None and key == last_key:
+            continue   # duplicate copy of a reading we already stored
+        last_key = key
         try:
             store(conn, row)
         except (OSError, sqlite3.Error) as e:

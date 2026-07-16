@@ -121,11 +121,16 @@ void setup() {
         NODE_ID, FW_VERSION, tempStr, rhStr,
         vbat, WiFi.RSSI(), bootCount, errStr);
 
+    // Send 3x: each wake boots with a cold ARP cache, and lwIP may drop the
+    // first datagram to an unresolved MAC while ARP resolves. Retries ride
+    // the resolved entry; duplicate readings are harmless (same boot count).
     WiFiUDP udp;
-    udp.beginPacket(mac_ip, MAC_PORT);
-    udp.write((const uint8_t *)packet, len);
-    udp.endPacket();
-    delay(50);   // let the radio actually flush the datagram
+    for (int i = 0; i < 3; i++) {
+        udp.beginPacket(mac_ip, MAC_PORT);
+        udp.write((const uint8_t *)packet, len);
+        udp.endPacket();
+        delay(100);   // ARP resolution + radio flush between attempts
+    }
 
     Serial.printf("Sent (%s connect, %lu ms awake): %s\n",
                   fastConnect ? "fast" : "full",

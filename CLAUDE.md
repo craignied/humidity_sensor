@@ -311,6 +311,27 @@ interval are the knobs.
 
 ## Gotchas (carry these forward — they were learned the hard way)
 
+- **The board's USB-serial chip is a CH340K (USB PID `0x7522`)** — macOS's
+  built-in CH34x support covers the common CH340G (`0x7523`) but NOT the K
+  variant, so no `/dev/cu.*` port appears when plugged in. Fix: WCH's official
+  driver. The Homebrew cask (`wch-ch34x-usb-serial-driver`) is **Intel-only**
+  (needs Rosetta) — instead use the **universal DMG** from
+  https://github.com/WCHSoftGroup/ch34xser_macos, copy `CH34xVCPDriver.app`
+  to /Applications, open it, click Install, then enable it under System
+  Settings → General → Login Items & Extensions → Driver Extensions.
+  Port appears as `/dev/cu.wchusbserial*`. (Learned 2026-07-16.)
+- **First UDP packets silently vanished until the Mac pinged the node.** With
+  a static IP the router has never seen, the AP didn't bridge the node's
+  packets to the Mac (node said "Sent", listener got nothing, ARP looked fine
+  both ways, RSSI was strong). A `ping 192.168.1.200` burst from the Mac
+  populated the network path and everything flowed from that moment. The
+  durable fix is the **DHCP reservation** for the node's IP+MAC on the router
+  — it is NOT optional. Node MAC: `b0:cb:d8:00:5f:80`. (2026-07-16.)
+- **Firmware sends each reading 3×** (100 ms apart) — each wake boots with a
+  cold ARP cache and lwIP may drop the first datagram(s) while ARP resolves.
+  The listener dedupes on `(node, boot)`, so duplicates never hit the CSV/db.
+  Don't "simplify" this back to a single send.
+
 - **Never feed 6 V (or anything >3.6 V) to the 3V3 pin.** Moot now that we're on
   a single LiPo, but noted so no one "improves" the power input later.
 - **DHT22 needs ~2 s after power-up** for a stable first reading; discard/ignore
