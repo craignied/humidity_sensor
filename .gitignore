@@ -1,0 +1,18 @@
+# Secrets / local config
+firmware/include/config.h
+
+# PlatformIO
+firmware/.pio/
+firmware/.vscode/
+
+# Python
+__pycache__/
+*.pyc
+listener/venv/
+listener/.venv/
+
+# Data produced by the listener (lives on the receiving Mac, not the repo)
+listener/humidity-data/
+
+# macOS
+.DS_Store
