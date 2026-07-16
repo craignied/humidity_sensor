@@ -32,6 +32,34 @@ listener/                 # Python UDP listener (runs on the always-on Mac)
 └── install.sh
 ```
 
+## Wiring
+
+| DHT22 module pin | FireBeetle 2 ESP32-E pin | Silkscreen label |
+|---|---|---|
+| VCC (+) | GPIO25 | `D2` |
+| DATA (out) | GPIO14 | `D6` |
+| GND (-) | GND | `GND` |
+
+```
+DHT22 module            FireBeetle 2 ESP32-E
+-----------             --------------------
+VCC  (+)    ----------> D2 / GPIO25   (power gate — NOT the 3V3 pin)
+DATA (out)  ----------> D6 / GPIO14   (pull-up on module)
+GND  (-)    ----------> GND
+```
+
+**Do not wire VCC to the board's 3V3 pin.** `D2`/GPIO25 powers the sensor
+directly so it draws zero current in deep sleep — wiring to 3V3 instead works
+electrically but defeats that gating.
+
+**Caveat:** the GPIO↔silkscreen mapping (`GPIO14`=`D6`, `GPIO25`=`D2`) comes
+from DFRobot's wiki GPIO table, not the board's physical header diagram
+(image-only). Confirm `D2`/`D6` visually against the silkscreen before
+wiring — same as the battery-polarity check below.
+
+**Before first battery plug-in:** meter the LiPo pigtail against the board's
+PH2.0 pads and confirm red = `+` matches the board's silk before plugging in.
+
 ## Build, flash, verify
 
 1. Copy the firmware config template and fill in your WiFi/network values:

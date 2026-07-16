@@ -98,11 +98,17 @@ prefer the standard library (socket, json, sqlite3, csv, logging).
 Use raw GPIO numbers in code and confirm against the DFRobot pinout/silk before
 first flash. Avoid strapping pins (GPIO0, 2, 12, 15).
 
-| Function | GPIO | Notes |
-|---|---|---|
-| DHT22 DATA | **GPIO14** | Digital in; module has its own pull-up |
-| DHT22 POWER (gate) | **GPIO25** | Drives sensor VCC so it's fully off during sleep |
-| DHT22 GND | GND | — |
+| Function | GPIO | Silkscreen label | Notes |
+|---|---|---|---|
+| DHT22 DATA | **GPIO14** | `D6` | Digital in; module has its own pull-up |
+| DHT22 POWER (gate) | **GPIO25** | `D2` | Drives sensor VCC so it's fully off during sleep |
+| DHT22 GND | GND | `GND` | Any GND pin, either header row |
+
+**Caveat:** the GPIO↔silkscreen mapping above (`GPIO14`=`D6`, `GPIO25`=`D2`)
+comes from DFRobot's wiki GPIO table (text), not the board's physical header
+diagram (image-only, not machine-readable). Confirm `D2`/`D6` visually against
+the silkscreen before wiring — same 30-second-insurance principle as the
+battery polarity check below.
 
 **Power-gating rationale:** driving the sensor's VCC from a GPIO means it draws
 nothing in deep sleep. On wake, set GPIO25 HIGH, wait for the DHT22 to
@@ -226,13 +232,18 @@ alternative in the README if it should survive logout.
 ```
 DHT22 module            FireBeetle 2 ESP32-E
 -----------             --------------------
-VCC  (+)    ----------> GPIO25   (power gate)
-DATA (out)  ----------> GPIO14   (pull-up on module)
+VCC  (+)    ----------> D2 / GPIO25   (power gate — NOT the 3V3 pin)
+DATA (out)  ----------> D6 / GPIO14   (pull-up on module)
 GND  (-)    ----------> GND
 
 LiPo (Qimoo, PH2.0) --> PH2.0 battery socket   *** verify polarity first ***
 USB-C ---------------->  flashing + charging
 ```
+
+**Do not wire DHT22 VCC to the board's 3V3 pin.** The whole point of the
+power-gating design above is that `D2`/GPIO25 sources the sensor's power
+directly, so it draws zero current in deep sleep. Wiring to 3V3 instead would
+work electrically but defeats the gating and costs ~30–50 µA continuously.
 
 **Before first battery plug-in:** meter the LiPo pigtail against the board's
 PH2.0 pads and confirm red = `+` matches the board's silk. DFRobot added an
