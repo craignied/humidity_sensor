@@ -32,13 +32,16 @@ CSV + SQLite → dashboard at **http://192.168.1.143:8011**.
   light/dark. Stdlib-only; static files served fresh (deploy = `git pull`).
 - **DHCP reservations added on the Orbi** (orbilogin.com): node `.200`,
   mini Ethernet `.143`, mini WiFi `.126`.
+- **Battery-only test PASSED** (2026-07-16 20:05): USB unplugged, boot
+  counter continued (no brownout reset), readings 9-for-9 on schedule,
+  vbat 4.20 V at start of discharge. **v1.0 success criteria all met.**
 - **Remaining**:
-  1. **Unplug USB → battery-only test** (the last milestone). Expect vbat to
-     settle ~4.1 V and start the slow descent; watch the dashboard.
-  2. API caps at 5,000 rows/query; the 30-day chart hits that in ~17 days —
+  1. API caps at 5,000 rows/query; the 30-day chart hits that in ~17 days —
      add downsampling or bump the cap before then.
-  3. Old test listener data lives on the Mac Studio (`~/humidity-data`) —
+  2. Old test listener data lives on the Mac Studio (`~/humidity-data`) —
      harmless, ignorable.
+  3. Long-term: watch vbat's descent on the dashboard to validate the
+     ~6-month battery projection.
 - **Serial note**: the Mac Studio needed the WCH CH34x driver for the board's
   CH340K — see Gotchas. Serial reader is only for debugging; node runs
   autonomously.
