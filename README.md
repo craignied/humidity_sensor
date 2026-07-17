@@ -92,6 +92,30 @@ after swapping.
 5. Unplug USB, run the node on the LiPo, and confirm readings keep arriving
    every interval.
 
+## Reading fields
+
+Each wake sends one UDP/JSON packet with these fields:
+
+| Field | Meaning |
+|---|---|
+| `node` | Node ID (e.g. `humidity-01`) |
+| `fw` | Firmware version |
+| `temp_c` | Temperature, °C |
+| `rh` | Relative humidity, % |
+| `vbat` | Battery voltage, V (via GPIO34 ÷2 divider) |
+| `rssi` | WiFi signal strength, dBm |
+| `boot` | Boot counter (RTC-persisted; spots resets/missed sends) |
+| `err` | Short error string on a failed read, else null |
+
+**RSSI** (Received Signal Strength Indicator) measures how strongly the node
+hears the WiFi access point, in **dBm** — a negative number where closer to
+zero is stronger: ~−30 excellent, ~−60 good, ~−70 fair, ~−80 weak, ~−90
+unusable. It's a free health metric for the node: a sinking RSSI on the
+dashboard points at a signal problem (distance, antenna, interference) rather
+than a firmware or receiver issue. It also earned its keep during delivery-drop
+debugging — a strong RSSI ruled out weak signal and pointed at the network path
+instead (see Gotchas in [CLAUDE.md](CLAUDE.md)).
+
 ## Notes
 
 - Wire polarity, pin assignments, packet format, WiFi fast-connect strategy,
