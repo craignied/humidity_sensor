@@ -6,11 +6,16 @@
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const CHARTS = [
-  { id: "chart-temp", field: "temp_c", cssVar: "--series-temp", decimals: 1, unit: "°C" },
-  { id: "chart-rh",   field: "rh",     cssVar: "--series-rh",   decimals: 1, unit: "%" },
-  { id: "chart-vbat", field: "vbat",   cssVar: "--series-vbat", decimals: 2, unit: "V" },
+  // Hero: humidity, fixed 0-100% scale, full width and taller.
+  { id: "chart-rh",   field: "rh",     cssVar: "--series-rh",   decimals: 1, unit: "%",
+    w: 800, h: 260, domain: [0, 100], ticks: 5 },
+  // Small multiples underneath, half width each, auto-scaled y.
+  { id: "chart-temp", field: "temp_c", cssVar: "--series-temp", decimals: 1, unit: "°C",
+    w: 390, h: 170, ticks: 3 },
+  { id: "chart-vbat", field: "vbat",   cssVar: "--series-vbat", decimals: 2, unit: "V",
+    w: 390, h: 170, ticks: 3 },
 ];
-const W = 800, H = 180, PAD = { top: 10, right: 14, bottom: 22, left: 44 };
+const PAD = { top: 10, right: 14, bottom: 22, left: 44 };
 const INTERVAL_MS = 5 * 60 * 1000;
 
 let currentHours = 24;
@@ -61,12 +66,18 @@ function renderChart(cfg, rows, rangeHours) {
     return;
   }
 
+  const W = cfg.w, H = cfg.h;
   const xs = pts.map(r => new Date(r.iso_ts).getTime());
   const ys = pts.map(r => r[cfg.field]);
   const xMin = Math.min(...xs), xMax = Math.max(...xs);
-  let yMin = Math.min(...ys), yMax = Math.max(...ys);
-  const yPad = (yMax - yMin) * 0.1 || 0.5;
-  yMin -= yPad; yMax += yPad;
+  let yMin, yMax;
+  if (cfg.domain) {
+    [yMin, yMax] = cfg.domain;           // fixed scale (hero RH: 0-100%)
+  } else {
+    yMin = Math.min(...ys); yMax = Math.max(...ys);
+    const yPad = (yMax - yMin) * 0.1 || 0.5;
+    yMin -= yPad; yMax += yPad;
+  }
 
   const X = t => PAD.left + ((t - xMin) / (xMax - xMin || 1)) * (W - PAD.left - PAD.right);
   const Y = v => H - PAD.bottom - ((v - yMin) / (yMax - yMin)) * (H - PAD.top - PAD.bottom);
@@ -75,13 +86,13 @@ function renderChart(cfg, rows, rangeHours) {
   host.appendChild(svg);
 
   // gridlines + y labels (clean numbers, recessive)
-  for (const t of niceTicks(yMin, yMax, 4)) {
+  for (const t of niceTicks(yMin, yMax, cfg.ticks || 4)) {
     el("line", { x1: PAD.left, x2: W - PAD.right, y1: Y(t), y2: Y(t), class: "grid-line" }, svg);
     const lbl = el("text", { x: PAD.left - 6, y: Y(t) + 4, "text-anchor": "end", class: "axis-label" }, svg);
     lbl.textContent = cfg.decimals >= 2 ? t.toFixed(2) : String(+t.toFixed(1));
   }
-  // x labels: first / middle / last
-  for (const frac of [0, 0.5, 1]) {
+  // x labels: first / middle / last on wide charts, first / last on small ones
+  for (const frac of (W >= 600 ? [0, 0.5, 1] : [0, 1])) {
     const t = xMin + frac * (xMax - xMin);
     const anchor = frac === 0 ? "start" : frac === 1 ? "end" : "middle";
     const lbl = el("text", { x: X(t), y: H - 6, "text-anchor": anchor, class: "axis-label" }, svg);
@@ -103,6 +114,7 @@ function renderChart(cfg, rows, rangeHours) {
 }
 
 function attachHover(host, svg, cfg, pts, xs, ys, X, Y, color, rangeHours) {
+  const W = cfg.w, H = cfg.h;
   const crosshair = el("line", {
     y1: PAD.top, y2: H - PAD.bottom, class: "crosshair", visibility: "hidden",
   }, svg);
