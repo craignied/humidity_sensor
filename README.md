@@ -9,6 +9,12 @@ Full spec, rationale, and hardware details live in [CLAUDE.md](CLAUDE.md) —
 that file is the source of truth for this project. This README is just the
 quick-start.
 
+A small stdlib-only **web dashboard** (`listener/dashboard.py`, port 8011)
+serves the readings from the same machine as the listener: humidity hero
+chart (0–100 %), temperature + battery charts, stat tiles, and a recent-
+readings table, with light/dark themes. Both listener and dashboard install
+as launchd LaunchAgents via `listener/install.sh`.
+
 ## Hardware
 
 | Item | Part |

@@ -10,23 +10,38 @@ Python listener on the Mac receives and logs the readings.
 This file is the source of truth for the project. Read it before proposing
 changes. The hardware is fixed and in hand — do not suggest swapping parts.
 
-## Status (2026-07-16)
+## Status (2026-07-16, end of day — PRODUCTION, on USB power)
 
-- **Hardware wired**: DHT22 on D2/D6/GND; Qimoo battery re-pinned (its plug
-  shipped reverse-polarity — see Wiring) and connected.
-- **Firmware implemented** (`firmware/`), builds clean. Real `config.h` is
-  filled in (WiFi creds from the locker `.env`): node static IP
-  `192.168.1.200`, pushing to `192.168.1.107:50505`. Not yet flashed.
-- **Listener implemented** (`listener/`), tested end-to-end with fake packets.
-  **Temporarily targeting the Mac Studio (192.168.1.107), not Niedermediamac**
-  — Craig's call for the testing phase. UDP 50505 is registered in
-  `locker/PORTS.md`. Move to Niedermediamac (192.168.1.126) for production:
-  it's a one-line `MAC_IP` change + reflash + run `install.sh` there.
-  (Reminder: the Mac Studio is a workstation — if it sleeps, readings drop.
-  Fine for testing, not for production.)
-- **Next**: flash over USB-C (`pio run -t upload`), watch first wake on the
-  monitor, start the listener, confirm end-to-end; add a DHCP reservation for
-  `.200` on the router.
+**The system is live end-to-end.** Node (static `192.168.1.200`, still
+USB-powered) → UDP 50505 → Niedermediamac **Ethernet `192.168.1.143`** →
+CSV + SQLite → dashboard at **http://192.168.1.143:8011**.
+
+- **Hardware**: DHT22 on D2/D6/GND; Qimoo battery re-pinned (shipped
+  reverse-polarity — see Wiring) and connected. Node still on USB-C.
+- **Firmware v1.0.0 flashed**: fast-connect works (~2.1 s awake), vbat via
+  GPIO34, triple-send per wake, `SLEEP_SECONDS 300`. Wakes are 6-for-6 to the
+  mini since cutover (vs ~31% delivery when the receiver was the Mac Studio's
+  WiFi — wireless→wireless was the problem, see Gotchas).
+- **Mini is the production receiver**: repo cloned at
+  `~/code/projects/humid_esp32`, listener + dashboard run as LaunchAgents
+  (RunAtLoad + KeepAlive; auto-login is on, so they survive reboots).
+  Listener dedupes the triple-send on `(node, boot)`.
+- **Dashboard** (`listener/dashboard.py`, port 8011 — registered in
+  `locker/PORTS.md`): humidity hero chart (0–100%), temp + battery two-up
+  below, stat tiles, 24h/7d/30d ranges, last-20 table, staleness warning,
+  light/dark. Stdlib-only; static files served fresh (deploy = `git pull`).
+- **DHCP reservations added on the Orbi** (orbilogin.com): node `.200`,
+  mini Ethernet `.143`, mini WiFi `.126`.
+- **Remaining**:
+  1. **Unplug USB → battery-only test** (the last milestone). Expect vbat to
+     settle ~4.1 V and start the slow descent; watch the dashboard.
+  2. API caps at 5,000 rows/query; the 30-day chart hits that in ~17 days —
+     add downsampling or bump the cap before then.
+  3. Old test listener data lives on the Mac Studio (`~/humidity-data`) —
+     harmless, ignorable.
+- **Serial note**: the Mac Studio needed the WCH CH34x driver for the board's
+  CH340K — see Gotchas. Serial reader is only for debugging; node runs
+  autonomously.
 
 ---
 
