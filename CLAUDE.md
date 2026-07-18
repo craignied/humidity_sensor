@@ -347,7 +347,8 @@ interval are the knobs.
   both ways, RSSI was strong). A `ping 192.168.1.200` burst from the Mac
   populated the network path and everything flowed from that moment. The
   durable fix is the **DHCP reservation** for the node's IP+MAC on the router
-  — it is NOT optional. Node MAC: `b0:cb:d8:00:5f:80`. (2026-07-16.)
+  — it is NOT optional. (Get the node's MAC from its serial log or the Orbi's
+  DHCP client list if you need to recreate the reservation.) (2026-07-16.)
 - **Firmware sends each reading 3×** (100 ms apart) — each wake boots with a
   cold ARP cache and lwIP may drop the first datagram(s) while ARP resolves.
   The listener dedupes on `(node, boot)`, so duplicates never hit the CSV/db.
