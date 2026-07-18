@@ -30,6 +30,9 @@ CSV + SQLite → dashboard at **http://192.168.1.143:8011**.
   `locker/PORTS.md`): humidity hero chart (0–100%), temp + battery two-up
   below, stat tiles, 24h/7d/30d ranges, last-20 table, staleness warning,
   light/dark. Stdlib-only; static files served fresh (deploy = `git pull`).
+  Page auto-refreshes every 60 s **and** re-fetches on `visibilitychange`
+  (added 2026-07-17) so a woken/foregrounded tab catches up instantly — see
+  the stale-tab gotcha below.
 - **DHCP reservations added on the Orbi** (orbilogin.com): node `.200`,
   mini Ethernet `.143`, mini WiFi `.126`.
 - **Battery-only test PASSED** (2026-07-16 20:05): USB unplugged, boot
@@ -350,6 +353,15 @@ interval are the knobs.
   The listener dedupes on `(node, boot)`, so duplicates never hit the CSV/db.
   Don't "simplify" this back to a single send.
 
+- **A "node may be offline" warning can be a stale browser tab, not the node.**
+  The staleness banner measures the age of the newest reading *that browser
+  tab has fetched*, not the node's true state. Background tabs freeze
+  `setInterval` and system sleep halts it entirely, so a dormant tab keeps
+  showing its last fetch while the counter climbs (seen 2026-07-17: one Mac's
+  tab read "264 min ago" while a freshly-loaded tab on another Mac was
+  current; a manual refresh fixed it). Fixed by re-fetching on
+  `visibilitychange`. Before suspecting the hardware, load the dashboard fresh
+  (or check `readings.csv`/`.db` on the mini) to see the real last reading.
 - **Never feed 6 V (or anything >3.6 V) to the 3V3 pin.** Moot now that we're on
   a single LiPo, but noted so no one "improves" the power input later.
 - **DHT22 needs ~2 s after power-up** for a stable first reading; discard/ignore
