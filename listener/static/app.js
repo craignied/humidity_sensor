@@ -234,3 +234,10 @@ document.querySelectorAll(".range-btn").forEach(btn => {
 
 refresh();
 setInterval(refresh, 60 * 1000);
+
+// Background tabs freeze setInterval (and system sleep halts it entirely), so
+// a dormant tab keeps showing its last fetch and the staleness counter just
+// climbs. Re-fetch the moment the tab becomes visible again to catch up.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refresh();
+});
