@@ -27,6 +27,21 @@ LOG_PATH = Path.home() / "Library" / "Logs" / "humidity-listener.log"
 CSV_FIELDS = ["iso_ts", "node", "temp_c", "rh", "vbat", "rssi", "boot", "err"]
 
 
+def csv_safe(value):
+    """Neutralize spreadsheet formula injection.
+
+    `node` and `err` come straight off the wire (untrusted UDP). A cell that
+    begins with = + - @ (or a leading tab/CR) is treated as a formula by
+    Excel/Numbers/Sheets, so an attacker who can reach the listener could get
+    code to run when someone opens readings.csv. Prefix such cells with a
+    single quote, which spreadsheets strip on display but which defuses the
+    formula. Non-string values are returned unchanged.
+    """
+    if isinstance(value, str) and value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
 def setup_logging() -> None:
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
@@ -87,7 +102,8 @@ def parse_packet(data: bytes) -> dict:
 
 def store(conn: sqlite3.Connection, row: dict) -> None:
     with CSV_PATH.open("a", newline="") as f:
-        csv.DictWriter(f, fieldnames=CSV_FIELDS).writerow(row)
+        safe_row = {k: csv_safe(v) for k, v in row.items()}
+        csv.DictWriter(f, fieldnames=CSV_FIELDS).writerow(safe_row)
     conn.execute(
         "INSERT INTO readings (iso_ts, node, temp_c, rh, vbat, rssi, boot, err) "
         "VALUES (:iso_ts, :node, :temp_c, :rh, :vbat, :rssi, :boot, :err)",

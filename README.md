@@ -116,10 +116,24 @@ than a firmware or receiver issue. It also earned its keep during delivery-drop
 debugging — a strong RSSI ruled out weak signal and pointed at the network path
 instead (see Gotchas in [CLAUDE.md](CLAUDE.md)).
 
+## Security / trust boundary
+
+This is a home-LAN project and its trust boundary **is** the LAN. The listener
+accepts unauthenticated UDP and the dashboard serves read-only data with no
+auth — both by design, both fine behind your router.
+
+- **Do not port-forward** UDP 50505 or the dashboard's TCP 8011 to the
+  internet. Anyone who could reach the listener could inject fake readings;
+  anyone who could reach the dashboard could read your data.
+- The listener escapes `=`/`+`/`-`/`@`-leading cells when writing
+  `readings.csv` so a crafted packet can't smuggle a spreadsheet formula into
+  the file (CSV formula injection). The SQLite copy is stored raw and the
+  dashboard renders every field as text, so neither is an injection sink.
+- Keep real WiFi credentials and IPs out of the repo:
+  `firmware/include/config.h` is gitignored — never commit it.
+
 ## Notes
 
 - Wire polarity, pin assignments, packet format, WiFi fast-connect strategy,
   and expected battery life are all documented in [CLAUDE.md](CLAUDE.md) —
   read it before making hardware or firmware changes.
-- `firmware/include/config.h` is gitignored; never commit real WiFi
-  credentials or IPs.
